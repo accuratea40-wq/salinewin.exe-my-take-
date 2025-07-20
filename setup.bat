@@ -8,4 +8,4 @@ if %errorLevel% NEQ 0 (
 )
 
 :: Launch the VBS as admin
-wscript "C:\Users\Replace\Desktop\salinewin.vbs"
+wscript "C:\Users\Replace\Desktop\salinewinmytake.vbs"
